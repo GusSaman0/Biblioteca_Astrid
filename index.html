@@ -140,6 +140,7 @@ const SPINES = [
   { bg: "#3E5148", fg: "#F4E6CC", band: "#C9A96E" },
 ];
 const I = {
+  letter: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>',
   search: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>',
   upload: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 16V4M6 10l6-6 6 6M4 20h16"/></svg>',
   back: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>',
@@ -155,7 +156,7 @@ const I = {
   pause: '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>',
 };
 
-let user = null, shelves = [], books = [], settings = null, cleanup = null;
+let user = null, shelves = [], books = [], settings = null, cleanup = null, showWelcomeNext = false;
 
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -203,6 +204,7 @@ function renderLogin() {
     $("#lb").disabled = true; $("#lb").textContent = "Abriendo…";
     const { error } = await sb.auth.signInWithPassword({ email, password });
     if (error) { $("#lb").disabled = false; $("#lb").textContent = "Entrar"; return show("El correo o la contraseña no coinciden. Intenta de nuevo."); }
+    showWelcomeNext = true;
     location.hash = ""; route();
   };
 }
@@ -252,6 +254,7 @@ async function renderHome() {
       </div>
       <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px">
         <label class="search">${I.search}<span class="sr-only">Buscar</span><input type="search" id="q" placeholder="Busca un libro"></label>
+        <button class="btn btn-ghost" id="letter" aria-label="Ver dedicatoria">${I.letter} Dedicatoria</button>
         <button class="btn btn-primary" id="add">${I.upload} Agregar libro</button>
       </div>
     </header>
@@ -297,6 +300,7 @@ async function renderHome() {
   renderMusicCard();
   $("#q").oninput = (e) => renderShelves(e.target.value);
   $("#add").onclick = openUpload;
+  $("#letter").onclick = openWelcome;
   if ($("#first")) $("#first").onclick = openUpload;
   $("#ns").oninput = () => ($("#serr").textContent = "");
   $("#sf").onsubmit = async (e) => {
@@ -308,7 +312,7 @@ async function renderHome() {
     renderHome();
   };
   $("#out").onclick = async () => { await sb.auth.signOut(); settings = null; music.load(null, false); location.hash = ""; route(); };
-  if (!settings.welcome_seen) openWelcome();
+  if (showWelcomeNext || !settings.welcome_seen) { showWelcomeNext = false; openWelcome(); }
 }
 
 function renderShelves(query) {
@@ -357,10 +361,11 @@ function openWelcome() {
       <h2 id="wt" class="hand" style="font-family:var(--hand);font-size:34px;color:var(--rust)">Para ti</h2>
       <p class="serif" style="margin:0;font-size:20px;line-height:1.5;white-space:pre-line">${esc(CONFIG.DEDICATION)}</p>
       <p class="hand" style="margin:0;font-size:26px;text-align:right;color:var(--rust)">— ${esc(CONFIG.FROM)}</p>
-      <button class="btn btn-ink" id="wok">Entrar a mi biblioteca</button>
-    </div>`, { dismiss: false });
+      <button class="btn btn-ink" id="wok">${settings.welcome_seen ? "Volver al librero" : "Entrar a mi biblioteca"}</button>
+    </div>`, { dismiss: !!settings.welcome_seen });
   $("#wok", el).onclick = async () => {
     close();
+    if (settings.welcome_seen) return;
     settings.welcome_seen = true;
     await sb.from("settings").upsert({ user_id: user.id, welcome_seen: true }, { onConflict: "user_id" });
   };
