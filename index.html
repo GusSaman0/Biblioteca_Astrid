@@ -1,0 +1,771 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2e1c13">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Biblioteca">
+<title>La biblioteca</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232e1c13'/%3E%3Crect x='12' y='16' width='9' height='34' rx='2' fill='%23c9773b'/%3E%3Crect x='23' y='12' width='8' height='38' rx='2' fill='%23e8d2a6'/%3E%3Crect x='33' y='18' width='10' height='32' rx='2' fill='%236f7f5a'/%3E%3Crect x='8' y='50' width='48' height='5' rx='1' fill='%23a86a38'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Inter:wght@400;500&family=Caveat:wght@400;500&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
+<style>
+:root{--wall:#2e1c13;--back:#3a2418;--shadow:#2a1810;--wood:#7a4a26;--wood-top:#8a5530;--board:#a86a38;--board-edge:#5c361c;--plinth:#6b3f20;--panel:#3e2819;--line:#6b4a30;--paper:#f3e6cc;--cream:#f3e2c0;--gold:#f2c27e;--amber:#e7a85c;--rust:#a4562a;--muted:#bfa888;--ink:#2e1c13;--ink-soft:#6a5440;--danger:#ffb4a2;--serif:"EB Garamond",Georgia,serif;--sans:"Inter",system-ui,sans-serif;--hand:"Caveat",cursive}
+*{box-sizing:border-box}html,body{margin:0;padding:0}
+body{background:var(--wall);color:var(--cream);font-family:var(--sans);-webkit-font-smoothing:antialiased;min-height:100vh}
+a{color:inherit}button{font-family:inherit;cursor:pointer}input,select,textarea{font-family:inherit}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.btn{height:44px;padding:0 20px;border-radius:22px;border:0;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-weight:500;text-decoration:none;white-space:nowrap}
+.btn-primary{background:var(--gold);color:var(--ink)}.btn-primary:hover{background:#f6d09a}
+.btn-ghost{background:transparent;color:var(--gold);border:1px solid var(--gold)}.btn-ghost:hover{background:rgba(242,194,126,.1)}
+.btn-ink{background:var(--ink);color:var(--paper);border-radius:6px}.btn-ink:hover{background:#46301f}
+.btn:disabled{opacity:.6;cursor:progress}
+.icon-btn{width:44px;height:44px;border:0;border-radius:8px;background:transparent;color:inherit;display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
+.icon-btn:hover{background:rgba(243,226,192,.1)}.icon-btn:disabled{opacity:.35;cursor:default}
+.field{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--ink-soft)}
+.input{height:44px;padding:0 12px;border-radius:6px;border:1px solid #cdb58f;background:#fffaf0;color:var(--ink);font-size:15px;width:100%}
+textarea.input{height:auto;padding:10px 12px;resize:vertical;line-height:1.5}
+.input-dark{height:44px;padding:0 12px;border-radius:6px;border:1px solid var(--line);background:var(--wall);color:var(--cream);font-size:13px;min-width:0}
+.input-dark::placeholder{color:#a8916f}
+.error{color:#8e3b2f;font-size:13px;margin:0}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.paper{background:var(--paper);color:var(--ink);border-radius:4px 7px 5px 6px/6px 4px 7px 5px}
+.tape{position:absolute;top:-10px;left:46%;width:74px;height:22px;background:#e8cf9e;transform:rotate(3deg);border-radius:2px}
+.hand{font-family:var(--hand)}.serif{font-family:var(--serif)}
+.glow{position:absolute;left:-160px;top:-200px;width:760px;height:760px;border-radius:50%;background:radial-gradient(circle,rgba(255,184,96,.22) 0%,rgba(255,184,96,.08) 45%,rgba(255,184,96,0) 70%);pointer-events:none}
+.wrap{position:relative;max-width:1240px;margin:0 auto;padding-left:40px;padding-right:40px}
+.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:20px;padding-top:32px;padding-bottom:8px}
+.title{font-family:var(--serif);font-size:44px;line-height:1;margin:0;font-weight:400}.title em{color:var(--gold)}
+.search{display:flex;align-items:center;gap:8px;height:44px;padding:0 14px;border-radius:22px;background:#47301f;color:#d9c4a0;border:1px solid var(--line)}
+.search input{border:0;background:transparent;color:var(--cream);outline:none;width:160px;font-size:14px}.search input::placeholder{color:#a8916f}
+.row{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:28px;padding-top:20px}
+.continue{display:flex;align-items:center;gap:18px;max-width:470px;flex:1 1 340px;padding:18px 22px 18px 18px;text-decoration:none;transform:rotate(-1.2deg);position:relative;transition:transform .2s;border:0;text-align:left}
+.continue:hover{transform:rotate(0) translateY(-2px)}
+.music{flex:0 1 380px;display:flex;flex-direction:column;gap:12px;padding:16px 18px;background:var(--panel);border:1px solid var(--line);border-radius:10px}
+.vinyl{flex:0 0 56px;height:56px;border-radius:50%;background:#1e120b;border:6px solid var(--shadow);display:flex;align-items:center;justify-content:center}
+.vinyl::after{content:"";width:18px;height:18px;border-radius:50%;background:var(--amber);border:3px solid #1e120b}
+.vinyl.spin{animation:spin 3.2s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.vinyl.spin{animation:none}}
+.case{position:relative;background:var(--back);border-left:22px solid var(--wood);border-right:22px solid var(--wood);border-top:22px solid var(--wood-top);border-radius:6px 6px 0 0}
+.case-shadow{height:16px;background:var(--shadow)}
+.books{display:flex;align-items:flex-end;gap:2px;height:210px;padding:0 16px;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;scrollbar-color:var(--line) transparent;position:relative;z-index:1}
+.spine{flex:0 0 auto;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:8px 0;text-decoration:none;border-radius:3px 4px 2px 3px/4px 3px 4px 2px;transition:transform .18s ease}
+.spine:hover,.spine:focus-visible{transform:translateY(-8px)}
+.spine .band{width:70%;height:3px;border-radius:2px}
+.spine .label{writing-mode:vertical-rl;font-family:var(--serif);font-size:14px;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-height:78%}
+.spine .ribbon{position:absolute;top:-14px;right:22%;width:8px;height:26px;background:var(--amber);clip-path:polygon(0 0,100% 0,100% 100%,50% 80%,0 100%)}
+.spine.lean{transform:rotate(7deg);transform-origin:bottom left;margin-left:6px}.spine.lean:hover{transform:rotate(7deg) translateY(-8px)}
+.empty-shelf{align-self:center;font-family:var(--hand);font-size:20px;color:#8f765a;padding-left:8px}
+.board{position:relative;height:18px;background:var(--board);border-bottom:7px solid var(--board-edge)}
+.tag{position:absolute;left:24px;top:-4px;padding:3px 12px 4px;z-index:2;background:var(--paper);color:var(--ink);font-family:var(--serif);font-style:italic;font-size:15px;border-radius:2px 4px 3px 2px;transform:rotate(-1deg)}
+.plinth{height:26px;margin:0 -10px;background:var(--plinth);border-radius:0 0 6px 6px}
+.ladder{position:absolute;right:70px;top:-60px;bottom:-40px;width:92px;transform:rotate(4deg);pointer-events:none;z-index:0;overflow:hidden}
+.ladder .rail{position:absolute;top:0;bottom:0;width:11px;background:#c98e4e;border-radius:4px}
+.ladder .rung{position:absolute;left:4px;right:4px;height:9px;background:#b57b3f;border-radius:3px}
+.foot{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding:22px 0 120px;color:var(--muted);font-size:13px}
+.linkish{background:none;border:0;color:var(--muted);text-decoration:underline;font-size:13px;padding:10px 0}.linkish:hover{color:var(--cream)}
+.overlay{position:fixed;inset:0;background:rgba(20,10,5,.7);z-index:50;display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
+.modal{position:relative;width:100%;max-width:480px;padding:28px;display:flex;flex-direction:column;gap:16px}
+.modal h2{margin:0;font-family:var(--serif);font-weight:400;font-size:28px}
+.drop{border:1.5px dashed #b99a6c;border-radius:8px;padding:18px;text-align:center;color:var(--ink-soft);font-size:14px;cursor:pointer;background:#fbf3e2;width:100%}
+.drop:hover{background:#f8eccf}
+.dock{position:fixed;right:16px;bottom:16px;z-index:40;display:flex;align-items:center;gap:10px;padding:8px 10px 8px 8px;background:var(--panel);border:1px solid var(--line);border-radius:32px;max-width:calc(100vw - 32px);color:var(--cream)}
+.dock .vinyl{flex-basis:40px;height:40px;border-width:4px}.dock .vinyl::after{width:12px;height:12px;border-width:2px}
+.dock-title{font-family:var(--serif);font-size:15px;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dock-spotify{position:fixed;right:16px;bottom:16px;z-index:40;width:320px;max-width:calc(100vw - 32px);border-radius:12px;overflow:hidden}
+.play{width:40px;height:40px;border-radius:20px;border:0;background:var(--gold);color:var(--ink);display:inline-flex;align-items:center;justify-content:center;flex:0 0 40px}
+.reader{min-height:100vh;background:#ebe4d8;color:var(--ink)}.reader.night{background:#17100b;color:var(--cream)}
+.rbar{position:sticky;top:0;z-index:30;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 12px;padding:8px 16px;background:var(--wall);color:var(--cream);border-bottom:1px solid var(--shadow)}
+.rbar-title{font-family:var(--serif);font-size:19px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rbar-sub{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:60vw}
+.rtools{display:flex;flex-wrap:wrap;align-items:center;gap:2px;font-size:13px}
+.pagebox{width:56px;height:36px;text-align:center;border-radius:6px;border:1px solid var(--line);background:#47301f;color:var(--cream);font-size:14px}
+.rselect{height:36px;border-radius:6px;border:1px solid var(--line);background:#47301f;color:var(--cream);padding:0 8px;font-size:13px}
+.rbody{display:flex;flex-wrap:wrap;gap:24px;max-width:1240px;margin:0 auto;padding:24px 16px 120px}
+.rpage{flex:999 1 560px;min-width:0;display:flex;flex-direction:column;align-items:center;gap:14px}
+.sheet{box-shadow:0 1px 0 #d8cdba,0 10px 30px rgba(60,30,10,.18);background:#fff;max-width:100%;line-height:0}
+.sheet canvas{max-width:100%;height:auto}
+.night .sheet canvas{filter:invert(.9) hue-rotate(180deg) brightness(.95)}.night .sheet{background:#1c1510;box-shadow:none}
+.pagernav{display:flex;gap:12px;align-items:center}
+.notes{flex:1 1 300px;display:flex;flex-direction:column;gap:14px}
+.notes h2{margin:0;font-family:var(--serif);font-weight:400;font-size:26px}
+.note{position:relative;padding:14px 16px;background:var(--paper);color:var(--ink);border-radius:8px;border:1px solid #ddcfb6;display:flex;flex-direction:column;gap:6px}
+.night .note{background:#2a1e15;color:var(--cream);border-color:#3e2c1f}
+.note-meta{font-size:12px;color:var(--rust);display:flex;justify-content:space-between;align-items:center;gap:8px}
+.note-quote{font-family:var(--serif);font-style:italic;font-size:17px;line-height:1.4;white-space:pre-wrap}
+.note-body{font-size:14px;line-height:1.5;white-space:pre-wrap}
+.note-actions button{background:none;border:0;color:inherit;font-size:12px;text-decoration:underline;padding:6px 4px;opacity:.8}
+.status-msg{font-size:14px;color:var(--ink-soft);padding:40px 0}.night .status-msg{color:var(--muted)}
+.login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;position:relative;overflow:hidden}
+.menu{position:absolute;right:0;top:48px;min-width:180px;padding:6px;display:flex;flex-direction:column;z-index:40}
+.menu button{width:100%;justify-content:flex-start;padding:0 12px}
+@media (max-width:720px){.wrap{padding-left:16px;padding-right:16px}.title{font-size:34px}.top{padding-top:24px}.search input{width:120px}.ladder{display:none}.case{border-left-width:10px;border-right-width:10px;border-top-width:14px}.books{padding:0 10px;height:196px}.continue{transform:none}.rbody{padding:16px 8px 120px}.rbar-title{font-size:16px}.dock-title{max-width:120px}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="yt-host" aria-hidden="true" style="position:fixed;left:-10000px;top:0;width:200px;height:200px;overflow:hidden"></div>
+<div id="dock-root"></div>
+<script>
+/* ================================================================
+   CONFIGURACIÓN — edita solo esta sección
+   ================================================================ */
+const CONFIG = {
+  // Supabase > Project Settings > API
+  SUPABASE_URL: "https://jfkyxplczutfbplqvstd.supabase.co",
+  SUPABASE_ANON_KEY: "sb_publishable_rx4adbwfM541bRq7XlHTlw_-TwvwRRN",
+  // Personalización del regalo
+  OWNER_NAME: "Astrid",
+  DEDICATION: "Feliz cumpleaños.\n\nEste lugar es tuyo: un librero que no se llena de polvo, para todo lo que lees, subrayas y piensas.\n\n[Escribe aquí tu dedicatoria]",
+  FROM: "[Tu nombre]",
+  DEFAULT_SHELVES: ["Filosofía", "Literatura", "Arte y dibujo", "Por leer"],
+};
+/* ================================================================ */
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+const sb = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+const $app = document.getElementById("app");
+document.title = "La biblioteca de " + CONFIG.OWNER_NAME;
+
+const STATUS = { pendiente: "Por leer", leyendo: "Leyendo", leido: "Leído" };
+const SPINES = [
+  { bg: "#C9773B", fg: "#2A1A10", band: "#F0C48A" }, { bg: "#D9A55B", fg: "#2A1A10", band: "#8A5530" },
+  { bg: "#E8D2A6", fg: "#2A1A10", band: "#B57B3F" }, { bg: "#8E3B2F", fg: "#F4E6CC", band: "#E7A85C" },
+  { bg: "#6F7F5A", fg: "#F4E6CC", band: "#D9C99A" }, { bg: "#4F6A86", fg: "#F4E6CC", band: "#D9C4A0" },
+  { bg: "#7A4E6E", fg: "#F4E6CC", band: "#E8C9A0" }, { bg: "#B98A4E", fg: "#2A1A10", band: "#6B3F20" },
+  { bg: "#3E5148", fg: "#F4E6CC", band: "#C9A96E" },
+];
+const I = {
+  search: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>',
+  upload: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 16V4M6 10l6-6 6 6M4 20h16"/></svg>',
+  back: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>',
+  next: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>',
+  minus: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M5 12h14"/></svg>',
+  plus: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
+  moon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M20 14.5A8 8 0 019.5 4a8 8 0 1010.5 10.5z"/></svg>',
+  sun: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
+  notes: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M5 4h10l4 4v12H5z"/><path d="M9 12h6M9 16h4"/></svg>',
+  more: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>',
+  close: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  play: '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 5v14l12-7z"/></svg>',
+  pause: '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>',
+};
+
+let user = null, shelves = [], books = [], settings = null, cleanup = null;
+
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const $ = (sel, root = document) => root.querySelector(sel);
+function hash(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+function spineFor(b) { const h = hash(b.id); return { ...SPINES[b.color % SPINES.length], width: 40 + (h % 15), height: 152 + ((h >> 4) % 36) }; }
+const ls = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
+
+/* ---------------- Rutas ---------------- */
+async function route() {
+  if (cleanup) { cleanup(); cleanup = null; }
+  const { data: { session } } = await sb.auth.getSession();
+  user = session?.user || null;
+  if (!user) { renderDock(); return renderLogin(); }
+  if (!settings) {
+    const { data } = await sb.from("settings").select("song_url,welcome_seen").maybeSingle();
+    settings = data || { song_url: null, welcome_seen: false };
+    music.load(settings.song_url, false);
+  }
+  const m = location.hash.match(/^#\/leer\/([\w-]+)/);
+  window.scrollTo(0, 0);
+  return m ? renderReader(m[1]) : renderHome();
+}
+window.addEventListener("hashchange", route);
+
+/* ---------------- Login ---------------- */
+function renderLogin() {
+  $app.innerHTML = `
+  <main class="login"><div class="glow" aria-hidden="true"></div>
+    <form id="lf" class="paper modal" style="max-width:400px;transform:rotate(-.8deg)">
+      <span class="tape" aria-hidden="true"></span>
+      <div><div class="hand" style="font-size:22px;color:var(--rust)">bienvenida a</div>
+        <h1 class="serif" style="margin:0;font-weight:400;font-size:32px;line-height:1.1">La biblioteca <em style="color:var(--rust)">de ${esc(CONFIG.OWNER_NAME)}</em></h1></div>
+      <label class="field">Correo<input class="input" id="le" type="email" autocomplete="email" placeholder="tu@correo.com"></label>
+      <label class="field">Contraseña<input class="input" id="lp" type="password" autocomplete="current-password"></label>
+      <p class="error" id="lerr" role="alert" hidden></p>
+      <button class="btn btn-ink" type="submit" id="lb">Entrar</button>
+    </form></main>`;
+  const err = $("#lerr");
+  const show = (t) => { err.textContent = t; err.hidden = !t; };
+  $("#le").oninput = $("#lp").oninput = () => show("");
+  $("#lf").onsubmit = async (e) => {
+    e.preventDefault();
+    const email = $("#le").value.trim(), password = $("#lp").value;
+    if (!email || !password) return show("Escribe tu correo y tu contraseña.");
+    $("#lb").disabled = true; $("#lb").textContent = "Abriendo…";
+    const { error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) { $("#lb").disabled = false; $("#lb").textContent = "Entrar"; return show("El correo o la contraseña no coinciden. Intenta de nuevo."); }
+    location.hash = ""; route();
+  };
+}
+
+/* ---------------- Datos ---------------- */
+let dbError = "";
+function explain(err) {
+  if (!err) return "";
+  const m = (err.message || "") + " " + (err.code || "");
+  if (/relation .* does not exist|42P01|PGRST205|schema cache/i.test(m)) return "Faltan las tablas en Supabase: corre schema.sql completo en el SQL Editor.";
+  if (/row-level security|42501/i.test(m)) return "Supabase bloqueó la operación por permisos (RLS). Vuelve a correr la parte de políticas de schema.sql.";
+  if (/JWT|apikey|Invalid API key/i.test(m)) return "La clave de Supabase en index.html no es válida.";
+  if (/Failed to fetch|NetworkError/i.test(m)) return "No hay conexión con Supabase. Revisa tu internet.";
+  return "Error de Supabase: " + (err.message || err.code || "desconocido");
+}
+async function loadLibrary() {
+  dbError = "";
+  let { data: sh, error: e1 } = await sb.from("shelves").select("id,name,position").order("position");
+  if (e1) { console.error(e1); dbError = explain(e1); }
+  if (!e1 && (!sh || !sh.length)) {
+    const { data, error: e2 } = await sb.from("shelves").insert(CONFIG.DEFAULT_SHELVES.map((name, i) => ({ name, position: i }))).select("id,name,position");
+    if (e2) { console.error(e2); dbError = explain(e2); }
+    sh = data || [];
+  }
+  shelves = sh;
+  const { data: bk, error: e3 } = await sb.from("books").select("id,shelf_id,title,author,status,current_page,total_pages,file_path,color,last_opened_at,created_at").order("created_at");
+  books = bk || [];
+  if (e3 && !dbError) { console.error(e3); dbError = explain(e3); }
+}
+
+/* ---------------- Estantería ---------------- */
+async function renderHome() {
+  if (!$app.querySelector(".case")) $app.innerHTML = `<p class="wrap status-msg" style="color:var(--muted)">Abriendo el librero…</p>`;
+  await loadLibrary();
+  const opened = books.filter((b) => b.last_opened_at);
+  const reading = opened.filter((b) => b.status === "leyendo");
+  const current = (reading.length ? reading : opened).sort((a, b) => (b.last_opened_at > a.last_opened_at ? 1 : -1))[0];
+  const cover = current ? SPINES[current.color % SPINES.length].bg : "";
+
+  $app.innerHTML = `
+  <div style="position:relative;min-height:100vh;overflow:hidden">
+    <div class="glow" aria-hidden="true"></div>
+    <header class="wrap top">
+      <div style="display:flex;flex-direction:column;gap:2px">
+        <div class="hand" style="font-size:24px;color:var(--amber)">bienvenida a</div>
+        <h1 class="title">La biblioteca <em>de ${esc(CONFIG.OWNER_NAME)}</em></h1>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px">
+        <label class="search">${I.search}<span class="sr-only">Buscar</span><input type="search" id="q" placeholder="Busca un libro"></label>
+        <button class="btn btn-primary" id="add">${I.upload} Agregar libro</button>
+      </div>
+    </header>
+    <div class="wrap row">
+      ${current ? `
+      <a href="#/leer/${current.id}" class="paper continue">
+        <span class="tape" aria-hidden="true"></span>
+        <span aria-hidden="true" style="flex:0 0 52px;height:78px;background:${cover};border-radius:3px 5px 4px 3px"></span>
+        <span style="display:flex;flex-direction:column;gap:4px;min-width:0">
+          <span class="hand" style="font-size:20px;color:var(--rust)">me quedé aquí…</span>
+          <span class="serif" style="font-size:22px;line-height:1.1">${esc(current.title)}</span>
+          <span style="font-size:13px;color:var(--ink-soft)">pág. ${current.current_page}${current.total_pages ? " de " + current.total_pages : ""} · seguir leyendo →</span>
+        </span></a>` : `
+      <button class="paper continue" id="first">
+        <span class="tape" aria-hidden="true"></span>
+        <span style="display:flex;flex-direction:column;gap:4px">
+          <span class="hand" style="font-size:20px;color:var(--rust)">para empezar…</span>
+          <span class="serif" style="font-size:22px;line-height:1.1">Sube tu primer libro</span>
+          <span style="font-size:13px;color:var(--ink-soft)">Cualquier PDF de hasta 50 MB →</span>
+        </span></button>`}
+      <section class="music" aria-label="Música" id="music-card"></section>
+    </div>
+    ${dbError ? `<div class="wrap" style="margin-top:20px"><div class="paper" role="alert" style="padding:14px 18px;font-size:14px;line-height:1.5"><strong>Algo no está bien en Supabase.</strong> ${esc(dbError)}</div></div>` : ""}
+    <main class="wrap" style="margin-top:34px">
+      <div class="case"><div id="shelves"></div>
+        <div class="ladder" aria-hidden="true"><div class="rail" style="left:0"></div><div class="rail" style="right:0"></div>
+          ${Array.from({ length: 16 }, (_, i) => `<div class="rung" style="top:${40 + i * 74}px"></div>`).join("")}</div>
+      </div>
+      <div class="plinth" aria-hidden="true"></div>
+      <div class="foot">
+        <form id="sf" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <label class="sr-only" for="ns">Nuevo estante</label>
+          <input id="ns" class="input-dark" placeholder="Nombre del nuevo estante">
+          <button type="submit" class="btn btn-ghost" style="border-radius:6px">Agregar estante</button>
+          <span id="serr" style="color:var(--danger)"></span>
+        </form>
+        <button class="linkish" id="out">Cerrar sesión</button>
+      </div>
+    </main>
+  </div>`;
+
+  renderShelves("");
+  renderMusicCard();
+  $("#q").oninput = (e) => renderShelves(e.target.value);
+  $("#add").onclick = openUpload;
+  if ($("#first")) $("#first").onclick = openUpload;
+  $("#ns").oninput = () => ($("#serr").textContent = "");
+  $("#sf").onsubmit = async (e) => {
+    e.preventDefault();
+    const name = $("#ns").value.trim();
+    if (!name) return ($("#serr").textContent = "Ponle nombre al estante.");
+    const { error } = await sb.from("shelves").insert({ name, position: shelves.length });
+    if (error) { console.error(error); return ($("#serr").textContent = "No se pudo crear. " + explain(error)); }
+    renderHome();
+  };
+  $("#out").onclick = async () => { await sb.auth.signOut(); settings = null; music.load(null, false); location.hash = ""; route(); };
+  if (!settings.welcome_seen) openWelcome();
+}
+
+function renderShelves(query) {
+  const q = query.trim().toLowerCase();
+  const vis = q ? books.filter((b) => b.title.toLowerCase().includes(q) || (b.author || "").toLowerCase().includes(q)) : books;
+  const groups = shelves.map((s) => ({ name: s.name, books: vis.filter((b) => b.shelf_id === s.id) }));
+  const loose = vis.filter((b) => !b.shelf_id || !shelves.some((s) => s.id === b.shelf_id));
+  if (loose.length) groups.push({ name: "Sin estante", books: loose });
+  $("#shelves").innerHTML = groups.map((g) => `
+    <section aria-label="${esc(g.name)}" style="position:relative">
+      <div class="case-shadow" aria-hidden="true"></div>
+      <div class="books">
+        ${g.books.length ? "" : `<span class="empty-shelf">${q ? "nada por aquí" : "estante vacío"}</span>`}
+        ${g.books.map((b, i) => {
+          const s = spineFor(b);
+          const lean = i === g.books.length - 1 && g.books.length >= 3;
+          const label = `${b.title}${b.author ? ", de " + b.author : ""}. ${STATUS[b.status]}`;
+          return `<a href="#/leer/${b.id}" class="spine${lean ? " lean" : ""}" title="${esc(label)}" aria-label="${esc(label)}"
+            style="width:${s.width}px;height:${s.height}px;background:${s.bg};color:${s.fg}">
+            ${b.status === "leyendo" ? '<span class="ribbon" aria-hidden="true"></span>' : ""}
+            <span class="band" style="background:${s.band}"></span><span class="label">${esc(b.title)}</span><span class="band" style="background:${s.band}"></span></a>`;
+        }).join("")}
+      </div>
+      <div class="board"><span class="tag">${esc(g.name)}</span></div>
+    </section>`).join("");
+}
+
+/* ---------------- Modales ---------------- */
+function modal(html, { dismiss = true } = {}) {
+  const el = document.createElement("div");
+  el.className = "overlay";
+  el.innerHTML = html;
+  document.body.appendChild(el);
+  const close = () => { el.remove(); document.removeEventListener("keydown", onKey); };
+  const onKey = (e) => { if (e.key === "Escape" && dismiss && !el.dataset.busy) close(); };
+  document.addEventListener("keydown", onKey);
+  if (dismiss) el.addEventListener("mousedown", (e) => { if (e.target === el && !el.dataset.busy) close(); });
+  el.querySelectorAll("[data-close]").forEach((b) => (b.onclick = () => !el.dataset.busy && close()));
+  return { el, close };
+}
+
+function openWelcome() {
+  const { el, close } = modal(`
+    <div class="paper modal" role="dialog" aria-modal="true" aria-labelledby="wt" style="max-width:460px;transform:rotate(-1deg);padding:36px 32px">
+      <span class="tape" aria-hidden="true"></span>
+      <h2 id="wt" class="hand" style="font-family:var(--hand);font-size:34px;color:var(--rust)">Para ti</h2>
+      <p class="serif" style="margin:0;font-size:20px;line-height:1.5;white-space:pre-line">${esc(CONFIG.DEDICATION)}</p>
+      <p class="hand" style="margin:0;font-size:26px;text-align:right;color:var(--rust)">— ${esc(CONFIG.FROM)}</p>
+      <button class="btn btn-ink" id="wok">Entrar a mi biblioteca</button>
+    </div>`, { dismiss: false });
+  $("#wok", el).onclick = async () => {
+    close();
+    settings.welcome_seen = true;
+    await sb.from("settings").upsert({ user_id: user.id, welcome_seen: true }, { onConflict: "user_id" });
+  };
+}
+
+function shelfOptions(selected, withNew) {
+  return shelves.map((s) => `<option value="${s.id}"${s.id === selected ? " selected" : ""}>${esc(s.name)}</option>`).join("") +
+    (withNew ? `<option value="__new"${shelves.length ? "" : " selected"}>Nuevo estante…</option>` : "");
+}
+
+function openUpload() {
+  const { el, close } = modal(`
+    <form class="paper modal" role="dialog" aria-modal="true" aria-labelledby="ut" id="uf">
+      <span class="tape" aria-hidden="true"></span>
+      <div style="display:flex;justify-content:space-between;align-items:center"><h2 id="ut">Agregar un libro</h2>
+        <button type="button" class="icon-btn" data-close aria-label="Cerrar">${I.close}</button></div>
+      <button type="button" class="drop" id="ud">Toca para elegir un PDF<br>o arrástralo aquí</button>
+      <input type="file" id="uin" accept="application/pdf,.pdf" hidden>
+      <label class="field">Título<input class="input" id="ut1" maxlength="200"></label>
+      <label class="field">Autor (opcional)<input class="input" id="ua" maxlength="120"></label>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <label class="field" style="flex:1 1 180px">Estante<select class="input" id="us">${shelfOptions(shelves[0]?.id, true)}</select></label>
+        <label class="field" style="flex:1 1 140px">Estado<select class="input" id="ust">
+          <option value="pendiente">Por leer</option><option value="leyendo">Leyendo</option><option value="leido">Leído</option></select></label>
+      </div>
+      <label class="field" id="unw" hidden>Nombre del nuevo estante<input class="input" id="un"></label>
+      <p class="error" id="uerr" role="alert" hidden></p>
+      <button class="btn btn-ink" type="submit" id="ub">Guardar en el librero</button>
+    </form>`);
+  let file = null;
+  const err = (t) => { $("#uerr", el).textContent = t; $("#uerr", el).hidden = !t; };
+  const syncNew = () => ($("#unw", el).hidden = $("#us", el).value !== "__new");
+  syncNew();
+  $("#us", el).onchange = () => { syncNew(); err(""); };
+  el.querySelectorAll("input").forEach((i) => i.addEventListener("input", () => err("")));
+  const pick = (f) => {
+    err("");
+    if (!f) return;
+    if (f.type !== "application/pdf" && !/\.pdf$/i.test(f.name)) return err("Ese archivo no es un PDF.");
+    if (f.size > 50 * 1024 * 1024) return err("Ese PDF pesa más de 50 MB. Prueba con una versión comprimida.");
+    file = f;
+    $("#ud", el).innerHTML = `<strong>${esc(f.name)}</strong><br>${(f.size / 1048576).toFixed(1)} MB · toca para cambiar`;
+    if (!$("#ut1", el).value) $("#ut1", el).value = f.name.replace(/\.pdf$/i, "").replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim();
+  };
+  $("#ud", el).onclick = () => $("#uin", el).click();
+  $("#ud", el).ondragover = (e) => e.preventDefault();
+  $("#ud", el).ondrop = (e) => { e.preventDefault(); pick(e.dataTransfer.files?.[0]); };
+  $("#uin", el).onchange = (e) => pick(e.target.files?.[0]);
+  $("#uf", el).onsubmit = async (e) => {
+    e.preventDefault();
+    const title = $("#ut1", el).value.trim(), author = $("#ua", el).value.trim();
+    let shelfId = $("#us", el).value; const status = $("#ust", el).value, newName = $("#un", el).value.trim();
+    if (!file) return err("Elige un PDF primero.");
+    if (!title) return err("Escribe el título del libro.");
+    if (shelfId === "__new" && !newName) return err("Ponle nombre al nuevo estante.");
+    el.dataset.busy = "1"; $("#ub", el).disabled = true; $("#ub", el).textContent = "Subiendo… no cierres esta ventana";
+    const fail = (t) => { delete el.dataset.busy; $("#ub", el).disabled = false; $("#ub", el).textContent = "Guardar en el librero"; err(t); };
+    if (shelfId === "__new") {
+      const { data, error } = await sb.from("shelves").insert({ name: newName, position: shelves.length }).select("id").single();
+      if (error) { console.error(error); return fail("No se pudo crear el estante. " + explain(error)); }
+      shelfId = data.id;
+    }
+    const path = `${user.id}/${crypto.randomUUID()}.pdf`;
+    const up = await sb.storage.from("books").upload(path, file, { contentType: "application/pdf" });
+    if (up.error) { console.error(up.error); return fail("No se pudo subir el PDF. " + (/bucket/i.test(up.error.message || "") ? "Falta el bucket 'books': corre schema.sql completo." : explain(up.error))); }
+    const { error } = await sb.from("books").insert({ title, author: author || null, shelf_id: shelfId, status, file_path: path, color: Math.floor(Math.random() * SPINES.length) });
+    if (error) { console.error(error); await sb.storage.from("books").remove([path]); return fail("No se pudo guardar el libro. " + explain(error)); }
+    delete el.dataset.busy; close(); renderHome();
+  };
+}
+
+/* ---------------- Música ---------------- */
+function parseSong(raw) {
+  if (!raw) return null;
+  let u; try { u = new URL(raw.trim()); } catch { return null; }
+  const host = u.hostname.replace(/^www\.|^m\./, "");
+  if (host === "youtu.be") { const id = u.pathname.slice(1).split("/")[0]; return id ? { kind: "youtube", id } : null; }
+  if (host === "youtube.com" || host === "music.youtube.com") {
+    const v = u.searchParams.get("v"); if (v) return { kind: "youtube", id: v };
+    const m = u.pathname.match(/^\/(shorts|embed|live)\/([\w-]+)/); return m ? { kind: "youtube", id: m[2] } : null;
+  }
+  if (host === "open.spotify.com") {
+    const m = u.pathname.match(/(track|album|playlist|episode)\/([A-Za-z0-9]+)/);
+    if (m) return { kind: "spotify", embed: `https://open.spotify.com/embed/${m[1]}/${m[2]}?theme=0` };
+  }
+  return null;
+}
+
+let ytReady = null;
+function loadYT() {
+  if (window.YT?.Player) return Promise.resolve(window.YT);
+  if (!ytReady) ytReady = new Promise((res) => {
+    window.onYouTubeIframeAPIReady = () => res(window.YT);
+    const s = document.createElement("script"); s.src = "https://www.youtube.com/iframe_api"; document.head.appendChild(s);
+  });
+  return ytReady;
+}
+
+const music = {
+  song: null, title: "", playing: false, player: null, error: "",
+  async load(url, autoplay) {
+    this.song = parseSong(url);
+    this.title = ""; this.playing = false; this.error = "";
+    if (this.song?.kind !== "youtube") {
+      if (this.player) { this.player.destroy(); this.player = null; $("#yt-host").innerHTML = ""; }
+      return this.refresh();
+    }
+    this.refresh();
+    const YT = await loadYT();
+    const id = this.song.id;
+    if (this.player) { autoplay ? this.player.loadVideoById(id) : this.player.cueVideoById(id); return; }
+    const host = document.createElement("div"); $("#yt-host").appendChild(host);
+    this.player = new YT.Player(host, {
+      width: 200, height: 200, videoId: id, host: "https://www.youtube.com",
+      playerVars: { playsinline: 1, controls: 0, ...(location.protocol.startsWith("http") ? { origin: location.origin } : {}) },
+      events: {
+        onReady: (e) => { this.error = ""; this.title = e.target.getVideoData?.().title || ""; if (autoplay) e.target.playVideo(); this.refresh(); },
+        onError: (e) => {
+          this.playing = false;
+          this.error = location.protocol === "file:"
+            ? "YouTube no reproduce en un archivo abierto con doble clic. Funcionará cuando la página esté en tu hosting."
+            : (e.data === 101 || e.data === 150 || e.data === 152 || e.data === 153)
+              ? "Ese video no permite reproducirse fuera de YouTube. Prueba con otra versión de la canción."
+              : "No se pudo reproducir ese enlace (código " + e.data + ").";
+          this.refresh();
+        },
+        onStateChange: (e) => {
+          const t = e.target.getVideoData?.().title; if (t) this.title = t;
+          this.playing = e.data === 1; if (e.data === 0) e.target.playVideo();
+          this.refresh();
+        },
+      },
+    });
+  },
+  toggle() { const p = this.player; if (!p?.getPlayerState) return; p.getPlayerState() === 1 ? p.pauseVideo() : p.playVideo(); },
+  refresh() { renderDock(); renderMusicCard(); },
+};
+
+let spotifyEmbed = "";
+function renderDock() {
+  const root = $("#dock-root");
+  const s = user ? music.song : null;
+  if (s?.kind === "spotify") {
+    if (spotifyEmbed !== s.embed) {
+      spotifyEmbed = s.embed;
+      root.innerHTML = `<div class="dock-spotify"><iframe title="Spotify" src="${esc(s.embed)}" width="100%" height="80" style="border:0;display:block" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe></div>`;
+    }
+    return;
+  }
+  spotifyEmbed = "";
+  if (s?.kind === "youtube") {
+    root.innerHTML = `<div class="dock" role="region" aria-label="Música">
+      <div class="vinyl${music.playing ? " spin" : ""}" aria-hidden="true"></div>
+      <div class="dock-title">${esc(music.title || "Tu canción")}</div>
+      <button class="play" id="dp" aria-label="${music.playing ? "Pausar" : "Reproducir"}">${music.playing ? I.pause : I.play}</button></div>`;
+    $("#dp").onclick = () => music.toggle();
+  } else root.innerHTML = "";
+}
+
+function renderMusicCard() {
+  const card = $("#music-card"); if (!card) return;
+  const s = music.song;
+  const label = !s ? "Aún no hay canción" : s.kind === "spotify" ? "Canción de Spotify" : music.title || "Cargando…";
+  const kicker = music.playing ? "sonando ahora" : s ? "lista para sonar" : "ponle música";
+  if (!card.dataset.ready) {
+    card.dataset.ready = "1";
+    card.innerHTML = `
+      <div style="display:flex;align-items:center;gap:14px">
+        <div class="vinyl" id="mv" aria-hidden="true"></div>
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
+          <div class="hand" id="mk" style="font-size:19px;color:var(--amber)"></div>
+          <div class="serif" id="mt" style="font-size:19px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
+        </div></div>
+      <form id="mf" style="display:flex;gap:8px">
+        <label class="sr-only" for="mu">Enlace de la canción</label>
+        <input id="mu" class="input-dark" type="url" inputmode="url" placeholder="Pega un enlace de YouTube o Spotify" style="flex:1">
+        <button type="submit" class="btn btn-ghost" style="border-radius:6px;padding:0 14px">Poner</button></form>
+      <p id="merr" role="alert" hidden style="margin:0;font-size:13px;color:var(--danger)"></p>`;
+    const err = (t) => { $("#merr").textContent = t; $("#merr").hidden = !t; };
+    $("#mu").oninput = () => err("");
+    $("#mf").onsubmit = async (e) => {
+      e.preventDefault();
+      const url = $("#mu").value.trim();
+      if (!url) return err("Pega primero el enlace de la canción.");
+      if (!parseSong(url)) return err("Pega un enlace de YouTube o Spotify.");
+      $("#mu").value = "";
+      music.load(url, true);
+      settings.song_url = url;
+      const { error } = await sb.from("settings").upsert({ user_id: user.id, song_url: url }, { onConflict: "user_id" });
+      if (error) { console.error(error); err("La canción no se pudo guardar. " + explain(error)); }
+    };
+  }
+  $("#mv").className = "vinyl" + (music.playing ? " spin" : "");
+  $("#mk").textContent = kicker;
+  $("#mt").textContent = label;
+  if (music.error) { $("#merr").textContent = music.error; $("#merr").hidden = false; }
+}
+
+/* ---------------- Lector ---------------- */
+async function renderReader(id) {
+  $app.innerHTML = `<div class="reader"><p class="status-msg" style="padding:40px 16px">Abriendo el libro…</p></div>`;
+  if (!shelves.length) await loadLibrary();
+  const { data: book } = await sb.from("books").select("*").eq("id", id).maybeSingle();
+  if (!book) { $app.innerHTML = `<div class="reader"><p class="status-msg" style="padding:40px 16px">No encontré este libro. <a href="#">Volver al librero</a></p></div>`; return; }
+  const [{ data: notesData }, { data: signed }] = await Promise.all([
+    sb.from("notes").select("id,page,quote,body,created_at").eq("book_id", id).order("page").order("created_at"),
+    sb.storage.from("books").createSignedUrl(book.file_path, 60 * 60 * 8),
+  ]);
+  let notes = notesData || [];
+  let page = Math.max(1, book.current_page), total = book.total_pages, zoom = 1, pdf = null, renderTask = null, saveT = null;
+  let night = ls.get("lector-noche") === "1", showNotes = window.innerWidth >= 900;
+
+  const patch = { last_opened_at: new Date().toISOString() };
+  if (book.status === "pendiente") { patch.status = "leyendo"; book.status = "leyendo"; }
+  sb.from("books").update(patch).eq("id", id).then(() => {});
+
+  $app.innerHTML = `
+  <div class="reader${night ? " night" : ""}" id="rd">
+    <header class="rbar">
+      <div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1 1 260px">
+        <a href="#" class="icon-btn" aria-label="Volver al librero">${I.back}</a>
+        <div style="min-width:0"><div class="rbar-title" id="bt"></div><div class="rbar-sub" id="ba"></div></div>
+      </div>
+      <div class="rtools">
+        <button class="icon-btn" id="pv" aria-label="Página anterior">${I.back}</button>
+        <form id="pf"><label class="sr-only" for="pg">Página</label><input id="pg" class="pagebox" inputmode="numeric"></form>
+        <span style="padding:0 6px;color:var(--muted)" id="pt"></span>
+        <button class="icon-btn" id="nx" aria-label="Página siguiente">${I.next}</button>
+        <button class="icon-btn" id="zo" aria-label="Reducir">${I.minus}</button>
+        <button class="icon-btn" id="zi" aria-label="Ampliar">${I.plus}</button>
+        <button class="icon-btn" id="nt" aria-label="Modo noche"></button>
+        <button class="icon-btn" id="nb" aria-label="Notas">${I.notes}</button>
+        <label class="sr-only" for="st">Estado</label>
+        <select id="st" class="rselect"><option value="pendiente">Por leer</option><option value="leyendo">Leyendo</option><option value="leido">Leído</option></select>
+        <div style="position:relative"><button class="icon-btn" id="mm" aria-label="Más opciones" aria-expanded="false">${I.more}</button>
+          <div class="paper menu" id="mn" hidden>
+            <button class="icon-btn" id="me" style="color:var(--ink)">Editar datos</button>
+            <button class="icon-btn" id="mdel" style="color:#8e3b2f">Eliminar libro</button></div></div>
+      </div>
+    </header>
+    <div class="rbody">
+      <div class="rpage" id="rp">
+        <div class="sheet" id="sheet" hidden><canvas id="cv"></canvas></div>
+        <p class="status-msg" id="pmsg">Abriendo el libro…</p>
+        <div class="pagernav">
+          <button class="btn btn-ghost" id="pv2" style="color:var(--rust);border-color:currentColor">← Anterior</button>
+          <button class="btn btn-ghost" id="nx2" style="color:var(--rust);border-color:currentColor">Siguiente →</button>
+        </div>
+      </div>
+      <aside class="notes" id="np" aria-label="Notas"></aside>
+    </div>
+  </div>`;
+
+  const setHead = () => { $("#bt").textContent = book.title; $("#ba").textContent = book.author || ""; $("#st").value = book.status; };
+  const setNight = () => {
+    $("#rd").classList.toggle("night", night);
+    $("#nt").innerHTML = night ? I.sun : I.moon;
+    $("#nt").setAttribute("aria-label", night ? "Modo día" : "Modo noche");
+    const c = night ? "var(--gold)" : "var(--rust)";
+    $("#pv2").style.color = $("#nx2").style.color = c;
+  };
+  const setNotesVis = () => { $("#np").hidden = !showNotes; $("#nb").setAttribute("aria-pressed", showNotes); draw(); };
+  setHead(); setNight();
+
+  async function draw() {
+    if (!pdf) return;
+    const p = await pdf.getPage(page);
+    const avail = Math.min($("#rp").clientWidth, 820) * zoom;
+    const base = p.getViewport({ scale: 1 });
+    const scale = avail / base.width;
+    const vp = p.getViewport({ scale });
+    const dpr = window.devicePixelRatio || 1;
+    const cv = $("#cv"); if (!cv) return;
+    cv.width = Math.floor(vp.width * dpr); cv.height = Math.floor(vp.height * dpr);
+    cv.style.width = vp.width + "px";
+    if (renderTask) renderTask.cancel();
+    renderTask = p.render({ canvasContext: cv.getContext("2d"), viewport: vp, transform: dpr !== 1 ? [dpr, 0, 0, dpr, 0, 0] : null });
+    try { await renderTask.promise; } catch {}
+  }
+  function go(n) {
+    const max = total || Math.max(n, page);
+    page = Math.min(Math.max(1, n), max);
+    $("#pg").value = page; $("#pt").textContent = "/ " + (total || "…");
+    $("#pv").disabled = $("#pv2").disabled = page <= 1;
+    $("#nx").disabled = $("#nx2").disabled = !!total && page >= total;
+    renderNotesForm();
+    draw();
+    clearTimeout(saveT);
+    saveT = setTimeout(() => sb.from("books").update({ current_page: page, last_opened_at: new Date().toISOString() }).eq("id", id).then(() => {}), 700);
+  }
+
+  $("#pv").onclick = $("#pv2").onclick = () => go(page - 1);
+  $("#nx").onclick = $("#nx2").onclick = () => go(page + 1);
+  const jump = () => { const n = parseInt($("#pg").value, 10); isNaN(n) ? ($("#pg").value = page) : go(n); };
+  $("#pf").onsubmit = (e) => { e.preventDefault(); jump(); };
+  $("#pg").onblur = jump;
+  $("#zo").onclick = () => { zoom = Math.max(0.6, +(zoom - 0.15).toFixed(2)); draw(); };
+  $("#zi").onclick = () => { zoom = Math.min(2.2, +(zoom + 0.15).toFixed(2)); draw(); };
+  $("#nt").onclick = () => { night = !night; ls.set("lector-noche", night ? "1" : "0"); setNight(); };
+  $("#nb").onclick = () => { showNotes = !showNotes; setNotesVis(); };
+  $("#st").onchange = async (e) => { book.status = e.target.value; await sb.from("books").update({ status: book.status }).eq("id", id); };
+  $("#mm").onclick = () => { const m = $("#mn"); m.hidden = !m.hidden; $("#mm").setAttribute("aria-expanded", !m.hidden); };
+  $("#me").onclick = () => { $("#mn").hidden = true; openEdit(book, setHead); };
+  $("#mdel").onclick = async () => {
+    $("#mn").hidden = true;
+    if (!confirm(`¿Eliminar "${book.title}"? También se borra el PDF y sus notas.`)) return;
+    await sb.storage.from("books").remove([book.file_path]);
+    await sb.from("books").delete().eq("id", id);
+    location.hash = "";
+  };
+
+  const onKey = (e) => {
+    const t = e.target.tagName; if (t === "INPUT" || t === "TEXTAREA" || t === "SELECT") return;
+    if (e.key === "ArrowRight") go(page + 1);
+    if (e.key === "ArrowLeft") go(page - 1);
+  };
+  let rt; const onResize = () => { clearTimeout(rt); rt = setTimeout(draw, 150); };
+  document.addEventListener("keydown", onKey); window.addEventListener("resize", onResize);
+  cleanup = () => { document.removeEventListener("keydown", onKey); window.removeEventListener("resize", onResize); clearTimeout(saveT); pdf?.destroy(); };
+
+  /* Notas */
+  function renderNotesForm() {
+    const meta = $("#nmeta"); if (meta) meta.textContent = "Nueva nota · pág. " + page;
+  }
+  function renderNotes() {
+    $("#np").innerHTML = `
+      <div style="display:flex;align-items:baseline;justify-content:space-between"><h2>Notas</h2><span style="font-size:12px;opacity:.75">${notes.length} en este libro</span></div>
+      <form class="note" id="nf" style="gap:10px">
+        <div class="note-meta" id="nmeta">Nueva nota · pág. ${page}</div>
+        <label class="sr-only" for="nq">Cita</label><textarea id="nq" class="input" rows="2" placeholder="Copia aquí una frase del libro (opcional)"></textarea>
+        <label class="sr-only" for="nbd">Nota</label><textarea id="nbd" class="input" rows="3" placeholder="Lo que te deja esta página"></textarea>
+        <p class="error" id="nerr" role="alert" hidden></p>
+        <button class="btn btn-ink" type="submit" id="nsv">Guardar nota</button>
+      </form>
+      ${notes.map((n) => `<article class="note"><div class="note-meta"><span>pág. ${n.page ?? "—"}</span><span class="note-actions">
+        ${n.page ? `<button data-go="${n.page}">ir</button>` : ""}<button data-del="${n.id}">borrar</button></span></div>
+        ${n.quote ? `<div class="note-quote">“${esc(n.quote)}”</div>` : ""}${n.body ? `<div class="note-body">${esc(n.body)}</div>` : ""}</article>`).join("")}`;
+    const err = (t) => { $("#nerr").textContent = t; $("#nerr").hidden = !t; };
+    $("#nq").oninput = $("#nbd").oninput = () => err("");
+    $("#nf").onsubmit = async (e) => {
+      e.preventDefault();
+      const quote = $("#nq").value.trim(), body = $("#nbd").value.trim();
+      if (!quote && !body) return err("Escribe una cita o una nota.");
+      $("#nsv").disabled = true; $("#nsv").textContent = "Guardando…";
+      const { data, error } = await sb.from("notes").insert({ book_id: id, page, quote: quote || null, body: body || null }).select("id,page,quote,body,created_at").single();
+      if (error) { $("#nsv").disabled = false; $("#nsv").textContent = "Guardar nota"; return err("No se pudo guardar la nota. Intenta de nuevo."); }
+      notes = [...notes, data].sort((a, b) => (a.page || 0) - (b.page || 0));
+      renderNotes();
+    };
+    $("#np").querySelectorAll("[data-go]").forEach((b) => (b.onclick = () => { go(+b.dataset.go); window.scrollTo(0, 0); }));
+    $("#np").querySelectorAll("[data-del]").forEach((b) => (b.onclick = async () => {
+      if (!confirm("¿Borrar esta nota?")) return;
+      notes = notes.filter((n) => n.id !== b.dataset.del); renderNotes();
+      await sb.from("notes").delete().eq("id", b.dataset.del);
+    }));
+  }
+  renderNotes(); $("#np").hidden = !showNotes;
+
+  /* PDF */
+  if (!signed?.signedUrl) { $("#pmsg").textContent = "No se encontró el archivo de este libro."; return; }
+  try {
+    const task = pdfjsLib.getDocument({ url: signed.signedUrl, disableAutoFetch: true, disableStream: false });
+    task.onProgress = ({ loaded, total: t }) => { const m = $("#pmsg"); if (m && t) m.textContent = "Abriendo el libro… " + Math.round((loaded / t) * 100) + "%"; };
+    pdf = await task.promise;
+    $("#sheet").hidden = false;
+    total = pdf.numPages;
+    if (book.total_pages !== total) sb.from("books").update({ total_pages: total }).eq("id", id).then(() => {});
+    $("#pmsg").remove();
+    go(Math.min(page, total));
+  } catch (e) {
+    console.error(e);
+    $("#pmsg").textContent = "No se pudo abrir el PDF (" + (e?.name || "error") + "). Recarga la página para intentarlo de nuevo.";
+  }
+}
+
+function openEdit(book, onSaved) {
+  const { el, close } = modal(`
+    <form class="paper modal" role="dialog" aria-modal="true" aria-labelledby="et" id="ef">
+      <div style="display:flex;justify-content:space-between;align-items:center"><h2 id="et">Editar libro</h2>
+        <button type="button" class="icon-btn" data-close aria-label="Cerrar">${I.close}</button></div>
+      <label class="field">Título<input class="input" id="e1" maxlength="200" value="${esc(book.title)}"></label>
+      <label class="field">Autor<input class="input" id="e2" maxlength="120" value="${esc(book.author || "")}"></label>
+      <label class="field">Estante<select class="input" id="e3"><option value="">Sin estante</option>${shelfOptions(book.shelf_id, false)}</select></label>
+      <p class="error" id="eerr" role="alert" hidden></p>
+      <button class="btn btn-ink" type="submit">Guardar cambios</button>
+    </form>`);
+  $("#ef", el).onsubmit = async (e) => {
+    e.preventDefault();
+    const title = $("#e1", el).value.trim();
+    if (!title) { $("#eerr", el).textContent = "El título no puede quedar vacío."; $("#eerr", el).hidden = false; return; }
+    const p = { title, author: $("#e2", el).value.trim() || null, shelf_id: $("#e3", el).value || null };
+    const { error } = await sb.from("books").update(p).eq("id", book.id);
+    if (error) { $("#eerr", el).textContent = "No se pudo guardar. Intenta de nuevo."; $("#eerr", el).hidden = false; return; }
+    Object.assign(book, p); onSaved(); close();
+  };
+}
+
+/* ---------------- Arranque ---------------- */
+if (CONFIG.SUPABASE_ANON_KEY.includes("TU-CLAVE")) {
+  $app.innerHTML = `<main class="login"><div class="paper modal" style="max-width:440px"><h2>Falta configurar</h2>
+    <p style="margin:0;line-height:1.5">Abre <strong>index.html</strong>, busca la sección <strong>CONFIGURACIÓN</strong> y pega tu <em>Project URL</em> y tu clave <em>anon public</em> de Supabase.</p></div></main>`;
+} else {
+  sb.auth.onAuthStateChange((ev) => { if (ev === "SIGNED_OUT") { settings = null; route(); } });
+  route();
+}
+</script>
+</body>
+</html>
